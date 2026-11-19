@@ -1,0 +1,55 @@
+Safety Concern: Use of permissions: write-all in .github/workflows/ci.yml.
+Risk: Anyone triggering the workflow (including via fork PRs or compromised dependency scripts) runs code with write capabilities to the repo.
+Fix: Applied  permissions: { contents: read } to secure the repository assets.
+with below code as provided 
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Secure permissions (Least Privilege)
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Code Quality Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Linter
+        run: npm run lint
+
+  test:
+    name: Run Test Suite
+    runs-on: ubuntu-latest
+    needs: lint # Specifies multi-job dependency
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Test Suite
+        run: npm test
